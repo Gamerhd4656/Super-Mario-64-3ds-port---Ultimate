@@ -12,18 +12,17 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential pkg-config python3 git wget libzip-dev libaudiofile-dev apt-transport-https gnupg
+          sudo apt-get install -y build-essential pkg-config python3 git curl libzip-dev libaudiofile-dev
 
-      - name: Setup devkitPro repository and pacman
+      - name: Install devkitPro via official installer script
         run: |
-          sudo mkdir -p /usr/local/share/keyring/
-          sudo wget -O /usr/local/share/keyring/devkitpro-pub.gpg https://apt.devkitpro.org/devkitpro-pub.gpg
-          echo "deb [signed-by=/usr/local/share/keyring/devkitpro-pub.gpg] https://apt.devkitpro.org stable main" | sudo tee /etc/apt/sources.list.d/devkitpro.list
-          sudo apt-get update
-          sudo apt-get install -y devkitpro-pacman
+          curl -LO https://github.com/devkitPro/installer/releases/download/v1.2.0/devkitpro-pacman-installer.sh
+          sudo chmod +x devkitpro-pacman-installer.sh
+          sudo ./devkitpro-pacman-installer.sh
 
       - name: Install 3DS toolchain packages
         run: |
+          export PATH=$PATH:/opt/devkitpro/tools/bin
           sudo dkp-pacman -Syu --noconfirm
           sudo dkp-pacman -S --noconfirm 3ds-dev 3ds-tools citro3d
 
