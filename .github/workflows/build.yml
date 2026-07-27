@@ -28,6 +28,7 @@ jobs:
 
       - name: Install Bannertool
         run: |
+          git config --global url."https://github.com/".insteadOf "git://github.com/"
           git clone --recursive https://github.com/Epicpkmn11/bannertool.git /tmp/bannertool
           cd /tmp/bannertool
           make
