@@ -5,14 +5,31 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: markstreet/sm64:3ds
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Extract assets and compile
+      - name: Install system dependencies
         run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential pkg-config python3 git wget libzip-dev libaudiofile-dev
+
+      - name: Install devkitPro pacman repository
+        run: |
+          sudo wget https://apt.devkitpro.org/install-devkitpro-pacman -O install-devkitpro-pacman.py
+          sudo python3 install-devkitpro-pacman.py
+
+      - name: Install 3DS toolchain packages
+        run: |
+          sudo dkp-pacman -Syu --noconfirm
+          sudo dkp-pacman -S --noconfirm 3ds-dev 3ds-tools citro3d
+
+      - name: Build and compile
+        run: |
+          export DEVKITPRO=/opt/devkitpro
+          export DEVKITARM=/opt/devkitpro/devkitARM
+          export PATH=$PATH:/opt/devkitpro/tools/bin
+          
           cp project_asset_overrides/* . || true
           make VERSION=us PLATFORM=3ds -j4
           make VERSION=us cia -j4
