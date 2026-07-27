@@ -23,8 +23,21 @@ jobs:
 
       - name: Install devkitPro toolchain and tools
         run: |
-          dkp-pacman -Syu --noconfirm
-          dkp-pacman -S --noconfirm picasso 3dstools general-tools
+          # Spoof the User-Agent pacman uses for downloads, since devkitPro's
+          # Cloudflare WAF intermittently 403s the default one (known issue).
+          echo 'XferCommand = /usr/bin/curl -A "Mozilla/5.0" -L -C - -f -o %o %u' >> /opt/devkitpro/pacman/etc/pacman.conf
+
+          for i in 1 2 3 4 5; do
+            dkp-pacman -Syu --noconfirm && break
+            echo "pacman sync failed, retrying in 15s (attempt $i)..."
+            sleep 15
+          done
+
+          for i in 1 2 3 4 5; do
+            dkp-pacman -S --noconfirm picasso 3dstools general-tools && break
+            echo "pacman install failed, retrying in 15s (attempt $i)..."
+            sleep 15
+          done
 
       - name: Install Bannertool
         run: |
