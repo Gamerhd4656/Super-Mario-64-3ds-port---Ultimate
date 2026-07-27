@@ -11,25 +11,32 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: devkitpro/devkita64:latest
+      image: devkitpro/devkitarm:latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install 3DS Dependencies (bannertool & picasso)
+      - name: Install System Dependencies (git, build-essentials, libpng-dev)
         run: |
-          dkmaint --refresh || dkp-pacman -Syu --noconfirm
-          dkp-pacman -S --noconfirm 3ds-bannertool 3ds-picasso
+          apt-get update && apt-get install -y --no-install-recommends git build-essential libpng-dev wget curl
 
-      - name: Prepare Base Assets
+      - name: Install devkitPro toolchain and tools
         run: |
-          # Place your baserom.us.z64 here or handle asset extraction depending on your setup
-          # e.g., if you store it as a secret or repo file.
-          ls -la
+          dkp-pacman -Syu --noconfirm
+          dkp-pacman -S --noconfirm picasso 3dstools general-tools
+
+      - name: Install Bannertool
+        run: |
+          git clone https://github.com/Epicpkmn11/bannertool.git /tmp/bannertool
+          cd /tmp/bannertool
+          make
+          mkdir -p /opt/devkitpro/tools/bin/
+          cp output/bannertool /opt/devkitpro/tools/bin/
 
       - name: Build SM64 3DS (.3dsx and .cia)
         run: |
+          export PATH=$PATH:/opt/devkitpro/tools/bin
           make TARGET_N3DS=1 -j$(nproc)
           make TARGET_N3DS=1 cia
 
@@ -40,4 +47,3 @@ jobs:
           path: |
             build/*/*.3dsx
             build/*/*.cia
-            
