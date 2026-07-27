@@ -28,7 +28,7 @@ jobs:
 
       - name: Install Bannertool
         run: |
-          git clone https://github.com/Epicpkmn11/bannertool.git /tmp/bannertool
+          git clone --recursive https://github.com/Epicpkmn11/bannertool.git /tmp/bannertool
           cd /tmp/bannertool
           make
           mkdir -p /opt/devkitpro/tools/bin/
