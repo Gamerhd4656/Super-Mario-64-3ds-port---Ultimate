@@ -17,17 +17,6 @@ jobs:
           apt-get update
           apt-get install -y build-essential pkg-config python3 git curl libzip-dev libaudiofile-dev bsdmainutils
 
-      - name: Configure pacman to bypass Cloudflare block
-        run: |
-          # Inject a custom User-Agent into pacman.conf so curl/wget looks like a browser
-          sed -i 's|#XferCommand = /usr/bin/curl|XferCommand = /usr/bin/curl -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" -C - -o %o %u|g' /etc/pacman.conf
-          sed -i 's|XferCommand = /usr/bin/curl|XferCommand = /usr/bin/curl -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" -C - -o %o %u|g' /etc/pacman.conf
-
-      - name: Install libctru and 3DS development packages
-        run: |
-          dkp-pacman -Syu --noconfirm
-          dkp-pacman -S --noconfirm 3ds-dev 3ds-tools citro3d
-
       - name: Build and compile
         run: |
           export DEVKITPRO=/opt/devkitpro
@@ -37,7 +26,7 @@ jobs:
           # Copy project asset overrides if they exist
           cp project_asset_overrides/* . || true
           
-          # Build the project with proper include references
+          # Build the project
           make VERSION=us PLATFORM=3ds CFLAGS="-I$DEVKITPRO/libctru/include" -j4
           make VERSION=us cia -j4
 
@@ -49,10 +38,3 @@ jobs:
             build/us_3ds/*.cia
             build/us_3ds/*.3dsx
             
-      - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: sm64-3ds-port
-          path: |
-            build/us_3ds/*.cia
-            build/us_3ds/*.3dsx
