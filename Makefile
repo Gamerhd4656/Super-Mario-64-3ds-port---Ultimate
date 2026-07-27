@@ -445,7 +445,7 @@ LDFLAGS := -T undefined_syms.txt -T $(BUILD_DIR)/$(LD_SCRIPT) -Map $(BUILD_DIR)/
 ENDIAN_BITWIDTH := $(BUILD_DIR)/endian-and-bitwidth
 
 ifeq ($(COMPILER),gcc)
-  CFLAGS := -march=vr4300 -mfix4300 -mabi=32 -mno-shared -G 0 -mhard-float -fno-stack-protector -fno-common -fno-zero-initialized-in-bss -I include -I src/ -I $(BUILD_DIR)/include -fno-PIC -mno-abicalls -g $(COMMON_CFLAGS) $(MIPSBIT) -Wno-trigraphs
+  CFLAGS := -march=vr4300 -mfix4300 -mabi=32 -mno-shared -G 0 -mhard-float -fno-stack-protector -fno-common -fno-zero-initialized-in-bss -I include -I src/ -I $(BUILD_DIR)/include -fno-PIC -mno-abicalls -fno-strict-aliasing -fno-inline-functions -ffreestanding -fwrapv -Wall -Wextra $(COMMON_CFLAGS)
 endif
 
 ifeq ($(shell getconf LONG_BIT), 32)
@@ -506,7 +506,7 @@ ifeq ($(TARGET_N3DS),1)
   CTRULIB := $(DEVKITPRO)/libctru
   LIBDIRS := $(CTRULIB)
   export LIBPATHS  :=  $(foreach dir,$(LIBDIRS),-L$(dir)/lib)
-  PLATFORM_CFLAGS  := -mtp=soft -DTARGET_N3DS -DARM11 -DosGetTime=n64_osGetTime -D_3DS -D__3DS__ -march=armv6k -mtune=mpcore -mfloat-abi=hard -mword-relocations -fomit-frame-pointer -ffast-math -Wno-error=redeclared-without-attribute-visibility
+  PLATFORM_CFLAGS  := -mtp=soft -DTARGET_N3DS -DARM11 -DosGetTime=n64_osGetTime -D_3DS -D__3DS__ -march=armv6k -mtune=mpcore -mfloat-abi=hard -mword-relocations -fomit-frame-pointer -ffast-math $(foreach dir,$(LIBDIRS),-I$(dir)/include)
   PLATFORM_LDFLAGS := $(LIBPATHS) -lcitro3d -lctru -lm -specs=3dsx.specs -g -marm -mthumb-interwork -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
   ifeq ($(DISABLE_AUDIO),1)
     PLATFORM_CFLAGS += -DDISABLE_AUDIO
@@ -573,7 +573,7 @@ else
 endif
 
 CC_CHECK := $(CC) -fsyntax-only -fsigned-char $(INCLUDE_CFLAGS) -Wall -Wextra -Wno-format-security -D_LANGUAGE_C $(VERSION_CFLAGS) $(MATCH_CFLAGS) $(PLATFORM_CFLAGS) $(GFX_CFLAGS) $(GRUCODE_CFLAGS)
-CFLAGS := $(OPT_FLAGS) $(INCLUDE_CFLAGS) -D_LANGUAGE_C $(VERSION_CFLAGS) $(MATCH_CFLAGS) $(PLATFORM_CFLAGS) $(GFX_CFLAGS) $(GRUCODE_CFLAGS) $(MARCH_FLAGS) -fno-strict-aliasing -fwrapv -Wno-error=redeclared-without-attribute-visibility
+CFLAGS := $(OPT_FLAGS) $(INCLUDE_CFLAGS) -D_LANGUAGE_C $(VERSION_CFLAGS) $(MATCH_CFLAGS) $(PLATFORM_CFLAGS) $(GFX_CFLAGS) $(GRUCODE_CFLAGS) $(MARCH_FLAGS) -fno-strict-aliasing -fwrapv
 
 ASFLAGS := -I include -I $(BUILD_DIR) $(VERSION_ASFLAGS)
 
@@ -616,7 +616,7 @@ endif
 ifeq ($(TARGET_N64),1)
 all: $(ROM)
 ifeq ($(COMPARE),1)
-	@$(SHA1SUM) -c $(TARGET).sha1 || (echo 'The build succeeded, but did not match the official ROM. This is expected if you are making changes to the game.\nTo silence this message, use "make COMPARE=0".' && false)
+	@$(SHA1SUM) -c $(TARGET).sha1 || (echo 'The build succeeded, but did not match the official ROM. This is expected if you are making changes to the game.\nTo silence this message, use "make COMPARE=0"'. && false)
 endif
 else
 all: $(EXE)
@@ -688,7 +688,7 @@ $(BUILD_DIR)/text/%/define_text.inc.c: text/define_text.inc.c text/%/courses.h t
 	$(CPP) $(VERSION_CFLAGS) $< -o - -I text/$*/ | $(TEXTCONV) charmap.txt - $@
 
 RSP_DIRS := $(BUILD_DIR)/rsp
-ALL_DIRS := $(BUILD_DIR) $(addprefix $(BUILD_DIR)/,$(SRC_DIRS) $(ASM_DIRS) $(GODDARD_SRC_DIRS) $(ULTRA_SRC_DIRS) $(ULTRA_ASM_DIRS) $(ULTRA_BIN_DIRS) $(BIN_DIRS) $(TEXTURE_DIRS) $(TEXT_DIRS) $(SOUND_BIN_DIR) $(RSP_DIRS) $(MIO0_DIR))
+ALL_DIRS := $(BUILD_DIR) $(addprefix $(BUILD_DIR)/,$(SRC_DIRS) $(ASM_DIRS) $(GODDARD_SRC_DIRS) $(ULTRA_SRC_DIRS) $(ULTRA_ASM_DIRS) $(ULTRA_BIN_DIRS) $(BIN_DIRS) $(TEXTURE_DIRS) $(TEXT_DIRS) $(SOUND_SAMPLE_DIRS) $(addprefix levels/,$(LEVEL_DIRS)) include) $(MIO0_DIR) $(addprefix $(MIO0_DIR)/,$(VERSION)) $(SOUND_BIN_DIR) $(SOUND_BIN_DIR)/sequences/$(VERSION) $(RSP_DIRS)
 
 ifeq ($(TARGET_N3DS),1)
   # create build dir for .t3x etc
@@ -936,7 +936,7 @@ CIA_ICON := 3ds/icon.icn
 CIA_BANNER := 3ds/banner.bnr
 BANNERTOOL ?= $(or $(shell command -v bannertool 2>/dev/null),$(wildcard /tmp/3ds-bannertool/build/bannertool),bannertool)
 
-$(ELF): $(O_FILES) $(MIO0_FILES:.mio0=.o) $(SOUND_OBJ_FILES) $(ULTRA_O_FILES) $(GODDARD_O_FILES) $(BUILD_DIR)/src/pc/gfx/shader.shbin.o $(BUILD_DIR)/src/pc/gfx/shadow.shbin.o $(MINIMAP_O) $(SMDH_ICON) $(BUILD_DIR)/libultra.a
+$(ELF): $(O_FILES) $(MIO0_FILES:.mio0=.o) $(SOUND_OBJ_FILES) $(ULTRA_O_FILES) $(GODDARD_O_FILES) $(BUILD_DIR)/src/pc/gfx/shader.shbin.o $(BUILD_DIR)/src/pc/gfx/shadow.shbin.o $(MINIMAP_O) $(SMDH_ICON)
 	$(LD) -L $(BUILD_DIR) -o $@ $(O_FILES) $(BUILD_DIR)/src/pc/gfx/shader.shbin.o $(BUILD_DIR)/src/pc/gfx/shadow.shbin.o $(MINIMAP_O) $(MINIMAP_T3X_O) $(SOUND_OBJ_FILES) $(ULTRA_O_FILES) $(GODDARD_O_FILES) $(LDFLAGS)
 
 $(EXE): $(ELF)
@@ -998,3 +998,5 @@ endif
 MAKEFLAGS += --no-builtin-rules
 
 -include $(DEP_FILES)
+
+print-% : ; $(info $* is a $(flavor $*) variable set to [$($*)]) @true
