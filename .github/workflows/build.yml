@@ -15,7 +15,7 @@ jobs:
       - name: Install additional dependencies
         run: |
           apt-get update
-          apt-get install -y build-essential pkg-config python3 git curl libzip-dev libaudiofile-dev
+          apt-get install -y build-essential pkg-config python3 git curl libzip-dev libaudiofile-dev bsdmainutils
 
       - name: Build and compile
         run: |
@@ -35,5 +35,5 @@ jobs:
         with:
           name: sm64-3ds-port
           path: |
-            build/us_3ds/*.cia
-            build/us_3ds/*.3dsx
+            build/us_3ds/bin/*.cia
+            build/us_3ds/bin/*.3dsx
