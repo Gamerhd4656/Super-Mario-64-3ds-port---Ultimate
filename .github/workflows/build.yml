@@ -17,20 +17,22 @@ jobs:
           apt-get update
           apt-get install -y build-essential pkg-config python3 git curl libzip-dev libaudiofile-dev bsdmainutils
 
+      - name: Install libctru and 3DS development packages
+        run: |
+          dkp-pacman -Syu --noconfirm
+          dkp-pacman -S --noconfirm 3ds-dev 3ds-tools citro3d
+
       - name: Build and compile
         run: |
           export DEVKITPRO=/opt/devkitpro
           export DEVKITARM=/opt/devkitpro/devkitARM
           export PATH=$PATH:/opt/devkitpro/tools/bin
           
-          # Remove incompatible warning flags from the makefiles if present
-          find . -name "Makefile*" -o -name "*.mk" | xargs sed -i 's/-Wno-error=redeclared-without-attribute-visibility//g' || true
-          
           # Copy project asset overrides if they exist
           cp project_asset_overrides/* . || true
           
-          # Build the project
-          make VERSION=us PLATFORM=3ds -j4
+          # Build the project, injecting the missing libctru include path
+          make VERSION=us PLATFORM=3ds CFLAGS="-I$DEVKITPRO/libctru/include" -j4
           make VERSION=us cia -j4
 
       - name: Upload Build Artifacts
@@ -40,4 +42,3 @@ jobs:
           path: |
             build/us_3ds/*.cia
             build/us_3ds/*.3dsx
-            
