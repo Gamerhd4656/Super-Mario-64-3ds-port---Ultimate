@@ -23,10 +23,13 @@ jobs:
           export DEVKITARM=/opt/devkitpro/devkitARM
           export PATH=$PATH:/opt/devkitpro/tools/bin
           
+          # Remove incompatible warning flags from the makefiles so GCC doesn't crash
+          find . -name "Makefile*" -o -name "*.mk" | xargs sed -i 's/-Wno-error=redeclared-without-attribute-visibility//g' || true
+          
           # Copy project asset overrides if they exist
           cp project_asset_overrides/* . || true
           
-          # Build the project
+          # Build the project with proper libctru include headers
           make VERSION=us PLATFORM=3ds CFLAGS="-I$DEVKITPRO/libctru/include" -j4
           make VERSION=us cia -j4
 
