@@ -33,13 +33,13 @@ jobs:
           # includes both the libctru include path and the N64 "include"
           # directory (for ultra64.h / PR/ultratypes.h), so CFLAGS must
           # NOT be overridden on the command line here.
+          # Only building the .3dsx target (no CIA), since that doesn't
+          # require bannertool, which isn't installed in this container.
           make VERSION=us -j4
-          make VERSION=us cia -j4
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: sm64-3ds-port
           path: |
-            build/us_3ds/*.cia
             build/us_3ds/*.3dsx
