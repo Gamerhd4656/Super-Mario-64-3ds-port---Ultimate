@@ -5,26 +5,17 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
+    container:
+      image: devkitpro/devkitarm:latest
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install system dependencies
+      - name: Install additional dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential pkg-config python3 git curl libzip-dev libaudiofile-dev
-
-      - name: Install devkitPro via official installer script
-        run: |
-          curl -LO https://github.com/devkitPro/installer/releases/download/v1.2.0/devkitpro-pacman-installer.sh
-          sudo chmod +x devkitpro-pacman-installer.sh
-          sudo ./devkitpro-pacman-installer.sh
-
-      - name: Install 3DS toolchain packages
-        run: |
-          export PATH=$PATH:/opt/devkitpro/tools/bin
-          sudo dkp-pacman -Syu --noconfirm
-          sudo dkp-pacman -S --noconfirm 3ds-dev 3ds-tools citro3d
+          apt-get update
+          apt-get install -y build-essential pkg-config python3 git curl libzip-dev libaudiofile-dev
 
       - name: Build and compile
         run: |
@@ -32,7 +23,10 @@ jobs:
           export DEVKITARM=/opt/devkitpro/devkitARM
           export PATH=$PATH:/opt/devkitpro/tools/bin
           
+          # Copy project asset overrides if they exist
           cp project_asset_overrides/* . || true
+          
+          # Build the project
           make VERSION=us PLATFORM=3ds -j4
           make VERSION=us cia -j4
 
