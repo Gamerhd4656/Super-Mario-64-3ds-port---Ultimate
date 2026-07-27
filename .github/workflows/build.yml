@@ -1,0 +1,27 @@
+name: Build SM64 3DS Port
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: 
+      image: markstreet/sm64:3ds
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract assets and compile
+        run: |
+          cp project_asset_overrides/* . || true
+          make VERSION=us PLATFORM=3ds -j4
+          make VERSION=us cia -j4
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sm64-3ds-port
+          path: |
+            build/us_3ds/*.cia
+            build/us_3ds/*.3dsx
+            
