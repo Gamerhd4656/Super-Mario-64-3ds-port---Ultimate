@@ -1,45 +1,43 @@
-name: Build SM64 3DS Port
+name: Build SM64 3DS
 
-on: [push]
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     container:
-      image: devkitpro/devkitarm:latest
+      image: devkitpro/devkita64:latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install additional dependencies
+      - name: Install 3DS Dependencies (bannertool & picasso)
         run: |
-          apt-get update
-          apt-get install -y build-essential pkg-config python3 git curl libzip-dev libaudiofile-dev bsdmainutils
+          dkmaint --refresh || dkp-pacman -Syu --noconfirm
+          dkp-pacman -S --noconfirm 3ds-bannertool 3ds-picasso
 
-      - name: Build and compile
+      - name: Prepare Base Assets
         run: |
-          export DEVKITPRO=/opt/devkitpro
-          export DEVKITARM=/opt/devkitpro/devkitARM
-          export PATH=$PATH:/opt/devkitpro/tools/bin
+          # Place your baserom.us.z64 here or handle asset extraction depending on your setup
+          # e.g., if you store it as a secret or repo file.
+          ls -la
 
-          # Remove incompatible warning flags from the makefiles so GCC doesn't crash
-          find . -name "Makefile*" -o -name "*.mk" | xargs sed -i 's/-Wno-error=redeclared-without-attribute-visibility//g' || true
-
-          # Copy project asset overrides if they exist
-          cp project_asset_overrides/* . || true
-
-          # Build the project - PLATFORM_CFLAGS in the Makefile already
-          # includes both the libctru include path and the N64 "include"
-          # directory (for ultra64.h / PR/ultratypes.h), so CFLAGS must
-          # NOT be overridden on the command line here.
-          # Only building the .3dsx target (no CIA), since that doesn't
-          # require bannertool, which isn't installed in this container.
-          make VERSION=us -j4
+      - name: Build SM64 3DS (.3dsx and .cia)
+        run: |
+          make TARGET_N3DS=1 -j$(nproc)
+          make TARGET_N3DS=1 cia
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: sm64-3ds-port
+          name: sm64-3ds-artifacts
           path: |
-            build/us_3ds/*.3dsx
+            build/*/*.3dsx
+            build/*/*.cia
+            
