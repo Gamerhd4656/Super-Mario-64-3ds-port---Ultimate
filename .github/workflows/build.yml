@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: devkitpro/devkitarm:latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -22,15 +22,18 @@ jobs:
           export DEVKITPRO=/opt/devkitpro
           export DEVKITARM=/opt/devkitpro/devkitARM
           export PATH=$PATH:/opt/devkitpro/tools/bin
-          
+
           # Remove incompatible warning flags from the makefiles so GCC doesn't crash
           find . -name "Makefile*" -o -name "*.mk" | xargs sed -i 's/-Wno-error=redeclared-without-attribute-visibility//g' || true
-          
+
           # Copy project asset overrides if they exist
           cp project_asset_overrides/* . || true
-          
-          # Build the project with proper libctru include headers
-          make VERSION=us PLATFORM=3ds CFLAGS="-I$DEVKITPRO/libctru/include" -j4
+
+          # Build the project - PLATFORM_CFLAGS in the Makefile already
+          # includes both the libctru include path and the N64 "include"
+          # directory (for ultra64.h / PR/ultratypes.h), so CFLAGS must
+          # NOT be overridden on the command line here.
+          make VERSION=us -j4
           make VERSION=us cia -j4
 
       - name: Upload Build Artifacts
@@ -40,4 +43,3 @@ jobs:
           path: |
             build/us_3ds/*.cia
             build/us_3ds/*.3dsx
-            
