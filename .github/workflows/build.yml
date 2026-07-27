@@ -33,7 +33,7 @@ jobs:
           cd /tmp/bannertool
           make
           mkdir -p /opt/devkitpro/tools/bin/
-          cp output/bannertool /opt/devkitpro/tools/bin/
+          cp output/linux-x86_64/bannertool /opt/devkitpro/tools/bin/
 
       - name: Build SM64 3DS (.3dsx and .cia)
         run: |
