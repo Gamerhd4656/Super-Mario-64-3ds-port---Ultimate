@@ -5,11 +5,17 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: 
-      image: markstreet/sm64:3ds
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Setup devkitPro
+        uses: devkitPro/actions/setup-devkitpro@main
+
+      - name: Install dependencies
+        run: |
+          sudo dkp-pacman -Syu --noconfirm
+          sudo dkp-pacman -S --noconfirm 3ds-dev 3ds-tools
 
       - name: Extract assets and compile
         run: |
@@ -24,4 +30,3 @@ jobs:
           path: |
             build/us_3ds/*.cia
             build/us_3ds/*.3dsx
-            
