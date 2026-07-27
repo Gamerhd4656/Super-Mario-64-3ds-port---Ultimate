@@ -19,7 +19,7 @@ jobs:
 
       - name: Install System Dependencies (git, build-essentials, libpng-dev)
         run: |
-          apt-get update && apt-get install -y --no-install-recommends git build-essential libpng-dev wget curl
+          apt-get update && apt-get install -y --no-install-recommends git build-essential libpng-dev wget curl bsdmainutils
 
       - name: Install devkitPro toolchain and tools
         run: |
