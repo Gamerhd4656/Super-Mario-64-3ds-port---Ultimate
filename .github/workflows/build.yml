@@ -50,11 +50,11 @@ jobs:
 
       - name: Install Makerom
         run: |
-          git clone https://github.com/profi200/Project_CTR.git /tmp/Project_CTR
-          cd /tmp/Project_CTR/makerom
+          git clone --recursive https://github.com/profi200/Project_CTR.git /tmp/Project_CTR
+          cd /tmp/Project_CTR
           make
           mkdir -p /opt/devkitpro/tools/bin/
-          cp makerom /opt/devkitpro/tools/bin/
+          cp makerom/bin/makerom /opt/devkitpro/tools/bin/
 
       - name: Build SM64 3DS (.3dsx and .cia)
         run: |
